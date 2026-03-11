@@ -14,6 +14,8 @@ A `useAppAccess` hook manages unlock state using localStorage. `App.jsx` checks 
 
 ```js
 // src/hooks/useAppAccess.js
+import { useState } from 'react'
+
 const KEY = 'appUnlocked'
 
 export function useAppAccess() {
@@ -51,18 +53,22 @@ If `VITE_APP_PASSWORD` is not set (empty/undefined), the gate is skipped — the
 
 ## Password Gate Screen
 
-A full-screen layout using `className="screen"` with a centred `className="card"`:
+`AppPasswordGate` reads `import.meta.env.VITE_APP_PASSWORD` internally (not via prop) and compares the entered value against it.
+
+A full-screen layout: `<div className="screen" style={{ justifyContent: 'center' }}>` (inline style on this component only — do not modify the shared `.screen` CSS class) containing a `className="card"`:
 
 - `<h1>⛳ Mini-Golf Scorecard</h1>`
-- `<p className="hint">Enter the event password to continue</p>`
-- `<input type="password">` for the password field
+- Wrap input and button in a `<form onSubmit={handleSubmit}>` so pressing Enter submits
+- `<label htmlFor="password">Password</label>` paired with `<input id="password" type="password">`
 - `<button className="btn btn-primary">Enter</button>`
 - `<p className="error-msg">` shown on wrong password, hidden otherwise
+
+`index.css` must add an `input[type="password"]` rule matching `input[type="text"]` so the field inherits the dark-theme styling.
 
 On submit:
 - Compare entered value to `import.meta.env.VITE_APP_PASSWORD` using `===` (string comparison)
 - Correct: call `onUnlock()`, gate disappears, app renders
-- Wrong: show error message "Incorrect password", clear the input
+- Wrong: show error "Incorrect password", clear the input, return focus to the input
 
 ## Password Checking
 
@@ -99,7 +105,13 @@ Use existing CSS classes: `className="screen"`, `className="card"`, `className="
   - Wrong password shows error message
   - Correct password calls `onUnlock` and sets localStorage
 
-  Use `vi.stubEnv('VITE_APP_PASSWORD', 'secret')` to set the password in tests and `vi.unstubAllEnvs()` in `afterEach`. Use `localStorage.setItem('appUnlocked', 'true')` / `localStorage.clear()` in test setup as needed.
+  Test component targeting:
+  - Tests for wrong/correct password behaviour: render `<AppPasswordGate onUnlock={mockFn} />` directly (stub the env var so the component has a password to compare against)
+  - Tests for "gate skipped when env var not set" and "gate skipped when already unlocked": render `<App />` (these conditions are evaluated in `App`, not in `AppPasswordGate`)
+
+  Use `vi.stubEnv('VITE_APP_PASSWORD', 'secret')` to set the password in tests and `vi.unstubAllEnvs()` in `afterEach`. Use `localStorage.clear()` in `beforeEach` (matching the pattern in `useSession.test.js`) to prevent test-order contamination.
+
+  Note: `AppPasswordGate` reads `import.meta.env.VITE_APP_PASSWORD` internally to avoid threading the password string as a prop (which would expose it in React DevTools). `App` reads the same var independently to decide whether to render the gate at all.
 
 ## Modified Files
 

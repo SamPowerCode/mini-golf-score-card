@@ -75,6 +75,38 @@ describe('Admin — dashboard', () => {
     const sharksCells = rows[2].querySelectorAll('td')
     expect(sharksCells[2].textContent).toBe('1') // Sharks has 1 player
   })
+
+  it('calls supabase delete.eq with the team id when Delete is confirmed', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    mockDeleteEq.mockClear()
+    const user = await renderAndUnlock()
+    await screen.findByText('Eagles')
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
+    await user.click(deleteButtons[0]) // first row is Eagles (id: 't1')
+    expect(mockDeleteEq).toHaveBeenCalledWith('id', 't1')
+  })
+
+  it('shows "All teams deleted." after Reset Event', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    mockDeleteNot.mockClear()
+    const user = await renderAndUnlock()
+    await screen.findByText('Eagles')
+    await user.click(screen.getByRole('button', { name: /reset event/i }))
+    expect(await screen.findByText(/all teams deleted/i)).toBeInTheDocument()
+    expect(mockDeleteNot).toHaveBeenCalledWith('id', 'is', null)
+  })
+
+  it('shows delete error and re-enables button on failure', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    mockDeleteEq.mockResolvedValueOnce({ error: { message: 'DB error' } })
+    const user = await renderAndUnlock()
+    await screen.findByText('Eagles')
+    const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
+    await user.click(deleteButtons[0])
+    expect(await screen.findByText(/delete failed/i)).toBeInTheDocument()
+    // Button should be re-enabled after failure
+    expect(deleteButtons[0]).not.toBeDisabled()
+  })
 })
 
 describe('Admin — PIN gate', () => {

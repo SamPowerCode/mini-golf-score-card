@@ -1,5 +1,7 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useSession } from './hooks/useSession'
+import { useAppAccess } from './hooks/useAppAccess'
+import AppPasswordGate from './screens/AppPasswordGate'
 import TeamSetup from './screens/TeamSetup'
 import PlayerNames from './screens/PlayerNames'
 import Scorecard from './screens/Scorecard'
@@ -8,11 +10,17 @@ import Leaderboards from './screens/Leaderboards'
 
 function SessionRouter() {
   const { teamId } = useSession()
-  // Default route: if no session go to setup, otherwise session screens handle their own redirect
   return <Navigate to={teamId ? '/scorecard' : '/setup'} replace />
 }
 
 export default function App() {
+  const { unlocked, unlock } = useAppAccess()
+  const password = import.meta.env.VITE_APP_PASSWORD
+
+  if (password && !unlocked) {
+    return <AppPasswordGate onUnlock={unlock} />
+  }
+
   return (
     <HashRouter>
       <Routes>

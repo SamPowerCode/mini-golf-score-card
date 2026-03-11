@@ -22,3 +22,6 @@ create table if not exists scores (
   strokes integer not null check (strokes >= 0),
   unique (player_id, hole_number)
 );
+
+ALTER TABLE scores DROP CONSTRAINT scores_strokes_check;                                                                                                                                                  
+ALTER TABLE scores ADD CONSTRAINT scores_strokes_check CHECK (strokes >= 0);   

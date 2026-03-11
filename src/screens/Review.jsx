@@ -16,11 +16,6 @@ export default function Review() {
   const [error, setError] = useState('')
   const [loadError, setLoadError] = useState('')
 
-  useEffect(() => {
-    if (!teamId) { navigate('/setup'); return }
-    loadData()
-  }, [teamId])
-
   async function loadData() {
     const [{ data: teamData, error: teamError }, { data: playerData, error: playerError }] = await Promise.all([
       supabase.from('teams').select('*').eq('id', teamId).single(),
@@ -48,6 +43,11 @@ export default function Review() {
     }
     return map
   }
+
+  useEffect(() => {
+    if (!teamId) { navigate('/setup'); return }
+    loadData()
+  }, [teamId])
 
   function teamTotal() {
     return players.reduce((sum, p) =>

@@ -16,11 +16,6 @@ export default function Scorecard() {
   const [loadError, setLoadError] = useState('')
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (!teamId) { navigate('/setup'); return }
-    loadData()
-  }, [teamId])
-
   async function loadData() {
     const [{ data: teamData, error: teamError }, { data: playerData, error: playerError }] = await Promise.all([
       supabase.from('teams').select('*').eq('id', teamId).single(),
@@ -49,6 +44,11 @@ export default function Scorecard() {
     }
     return map
   }
+
+  useEffect(() => {
+    if (!teamId) { navigate('/setup'); return }
+    loadData()
+  }, [teamId])
 
   const handleScoreChange = useCallback(async (playerId, hole, strokes) => {
     setSaveError('')

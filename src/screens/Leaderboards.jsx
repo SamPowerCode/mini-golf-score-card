@@ -7,8 +7,6 @@ export default function Leaderboards() {
   const [playerBoard, setPlayerBoard] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { loadData() }, [])
-
   async function loadData() {
     // Load only submitted teams
     const { data: teams } = await supabase
@@ -53,6 +51,8 @@ export default function Leaderboards() {
     setPlayerBoard(sortedPlayers)
     setLoading(false)
   }
+
+  useEffect(() => { loadData() }, [])
 
   if (loading) return <div className="screen"><p className="hint">Loading…</p></div>
 

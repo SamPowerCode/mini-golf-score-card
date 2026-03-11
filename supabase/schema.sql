@@ -18,7 +18,7 @@ create table if not exists players (
 create table if not exists scores (
   id uuid primary key default gen_random_uuid(),
   player_id uuid not null references players(id) on delete cascade,
-  hole_number integer not null check (hole_number >= 1),
+  hole_number integer not null check (hole_number between 1 and 36),
   strokes integer not null check (strokes >= 1),
   unique (player_id, hole_number)
 );

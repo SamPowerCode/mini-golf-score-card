@@ -22,6 +22,7 @@ export default function App() {
         <Route path="/scorecard" element={<Scorecard />} />
         <Route path="/review" element={<Review />} />
         <Route path="/leaderboards" element={<Leaderboards />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>
   )

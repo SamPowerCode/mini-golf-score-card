@@ -76,6 +76,7 @@ input:focus { outline: 2px solid var(--accent); border-color: transparent; }
   border: 1px solid var(--border);
   color: var(--text-secondary);
 }
+.btn-secondary:hover { border-color: var(--text-secondary); color: var(--text); }
 
 .error-msg { color: var(--danger); font-size: 0.875rem; }
 .hint { color: var(--text-secondary); font-size: 0.875rem; }

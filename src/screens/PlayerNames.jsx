@@ -11,7 +11,7 @@ export default function PlayerNames() {
 
   useEffect(() => {
     if (!teamId || !numPlayersRaw) navigate('/setup')
-  }, [])
+  }, [teamId, numPlayersRaw, navigate])
   const [names, setNames] = useState(() => Array(numPlayers).fill(''))
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)

@@ -13,6 +13,7 @@ export default function Scorecard() {
   // scores shape: { [playerId]: { [hole]: strokes } }
   const [scores, setScores] = useState({})
   const [saveError, setSaveError] = useState('')
+  const [loadError, setLoadError] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -21,10 +22,11 @@ export default function Scorecard() {
   }, [teamId])
 
   async function loadData() {
-    const [{ data: teamData }, { data: playerData }] = await Promise.all([
+    const [{ data: teamData, error: teamError }, { data: playerData, error: playerError }] = await Promise.all([
       supabase.from('teams').select('*').eq('id', teamId).single(),
       supabase.from('players').select('*').eq('team_id', teamId),
     ])
+    if (teamError || playerError) { setLoadError('Failed to load game data. Please refresh.'); setLoading(false); return }
     if (!teamData) { navigate('/setup'); return }
     if (teamData.submitted_at) { navigate('/leaderboards'); return }
     setTeam(teamData)
@@ -32,7 +34,8 @@ export default function Scorecard() {
 
     const playerIds = (playerData ?? []).map(p => p.id)
     if (playerIds.length > 0) {
-      const { data: scoreData } = await supabase.from('scores').select('*').in('player_id', playerIds)
+      const { data: scoreData, error: scoreError } = await supabase.from('scores').select('*').in('player_id', playerIds)
+      if (scoreError) { setLoadError('Failed to load scores. Please refresh.'); setLoading(false); return }
       setScores(buildScoresMap(scoreData ?? []))
     }
     setLoading(false)
@@ -49,15 +52,32 @@ export default function Scorecard() {
 
   const handleScoreChange = useCallback(async (playerId, hole, strokes) => {
     setSaveError('')
-    setScores(prev => ({
-      ...prev,
-      [playerId]: { ...(prev[playerId] ?? {}), [hole]: strokes }
-    }))
+    // Save previous value for rollback
+    let previousValue
+    setScores(prev => {
+      previousValue = prev[playerId]?.[hole] ?? null
+      return {
+        ...prev,
+        [playerId]: { ...(prev[playerId] ?? {}), [hole]: strokes }
+      }
+    })
     const { error } = await supabase.from('scores').upsert(
       { player_id: playerId, hole_number: hole, strokes },
       { onConflict: 'player_id,hole_number' }
     )
-    if (error) setSaveError('Save failed — tap the cell again to retry')
+    if (error) {
+      // Revert the optimistic update
+      setScores(prev => {
+        const updated = { ...(prev[playerId] ?? {}) }
+        if (previousValue === null) {
+          delete updated[hole]
+        } else {
+          updated[hole] = previousValue
+        }
+        return { ...prev, [playerId]: updated }
+      })
+      setSaveError('Save failed — tap the cell again to retry')
+    }
   }, [])
 
   function allScoresFilled() {
@@ -69,6 +89,7 @@ export default function Scorecard() {
   }
 
   if (loading) return <div className="screen"><p className="hint">Loading…</p></div>
+  if (loadError) return <div className="screen"><p className="error-msg">{loadError}</p></div>
 
   return (
     <div className="screen">

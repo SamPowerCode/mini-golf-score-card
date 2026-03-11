@@ -24,10 +24,6 @@ const mockScores = [
 ]
 // Team totals: Eagles=13, Sharks=4 → Sharks wins
 
-vi.mock('../hooks/useSession', () => ({
-  useSession: () => ({ teamId: 't1', setTeamId: vi.fn(), clearSession: vi.fn() })
-}))
-
 vi.mock('../lib/supabase', () => ({
   supabase: {
     from: vi.fn((table) => {

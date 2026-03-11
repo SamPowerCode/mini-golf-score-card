@@ -14,6 +14,7 @@ export default function Review() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
     if (!teamId) { navigate('/setup'); return }
@@ -21,15 +22,19 @@ export default function Review() {
   }, [teamId])
 
   async function loadData() {
-    const [{ data: teamData }, { data: playerData }] = await Promise.all([
+    const [{ data: teamData, error: teamError }, { data: playerData, error: playerError }] = await Promise.all([
       supabase.from('teams').select('*').eq('id', teamId).single(),
       supabase.from('players').select('*').eq('team_id', teamId),
     ])
+    if (teamError || playerError) { setLoadError('Failed to load game data. Please refresh.'); setLoading(false); return }
+    if (!teamData) { navigate('/setup'); return }
     setTeam(teamData)
+    if (teamData?.submitted_at) { navigate('/leaderboards'); return }
     setPlayers(playerData ?? [])
     const playerIds = (playerData ?? []).map(p => p.id)
     if (playerIds.length > 0) {
-      const { data: scoreData } = await supabase.from('scores').select('*').in('player_id', playerIds)
+      const { data: scoreData, error: scoreError } = await supabase.from('scores').select('*').in('player_id', playerIds)
+      if (scoreError) { setLoadError('Failed to load scores. Please refresh.'); setLoading(false); return }
       setScores(buildScoresMap(scoreData ?? []))
     }
     setLoading(false)
@@ -61,6 +66,7 @@ export default function Review() {
   }
 
   if (loading) return <div className="screen"><p className="hint">Loading…</p></div>
+  if (loadError) return <div className="screen"><p className="error-msg">{loadError}</p></div>
 
   return (
     <div className="screen">

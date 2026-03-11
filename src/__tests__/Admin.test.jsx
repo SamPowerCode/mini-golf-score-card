@@ -104,8 +104,8 @@ describe('Admin — dashboard', () => {
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
     await user.click(deleteButtons[0])
     expect(await screen.findByText(/delete failed/i)).toBeInTheDocument()
-    // Button should be re-enabled after failure
-    expect(deleteButtons[0]).not.toBeDisabled()
+    // Re-query after re-render to avoid stale DOM reference
+    expect(screen.getAllByRole('button', { name: /delete/i })[0]).not.toBeDisabled()
   })
 })
 

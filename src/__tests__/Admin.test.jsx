@@ -50,4 +50,13 @@ describe('Admin — PIN gate', () => {
     await user.click(screen.getByRole('button', { name: /unlock/i }))
     expect(screen.getByText(/incorrect/i)).toBeInTheDocument()
   })
+
+  it('reveals dashboard heading on correct PIN', async () => {
+    vi.stubEnv('VITE_ADMIN_PIN', '1234')
+    const user = userEvent.setup()
+    renderAdmin()
+    await user.type(screen.getByRole('textbox'), '1234')
+    await user.click(screen.getByRole('button', { name: /unlock/i }))
+    expect(await screen.findByText(/admin.*all teams/i)).toBeInTheDocument()
+  })
 })

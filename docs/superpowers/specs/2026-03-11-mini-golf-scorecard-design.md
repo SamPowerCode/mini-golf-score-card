@@ -47,12 +47,14 @@ No custom backend server. The frontend communicates directly with Supabase via i
 | hole_number | integer | 1-indexed |
 | strokes | integer | must be ≥ 1 |
 
+`scores` has a unique constraint on `(player_id, hole_number)`. All writes use upsert (INSERT … ON CONFLICT DO UPDATE) keyed on this constraint.
+
 ---
 
 ## App Screens
 
 ### Screen 1 — Team Setup
-- Fields: team name, number of players, number of holes
+- Fields: team name, number of players (min 1, max 20), number of holes (min 1, max 36)
 - All fields required; validation before advancing
 - On submit: creates `teams` record, stores team ID in `localStorage`
 
@@ -62,12 +64,12 @@ No custom backend server. The frontend communicates directly with Supabase via i
 - On submit: creates `players` records linked to the team
 
 ### Screen 3 — Scorecard
-- Full scrollable grid: rows = players, columns = holes
-- Each cell shows current strokes (editable via tap → +/− buttons or direct number input)
-- Running totals column on the right
-- Scores saved to Supabase on each edit
+- Full scrollable grid: rows = players, columns = holes (count determined by `num_holes` on the team record)
+- Each cell shows current strokes (editable via tap → +/− buttons or direct number input); empty cells display "—" and contribute 0 to totals
+- Running totals column on the right (sum of entered scores only)
+- Scores saved to Supabase via upsert on each edit
 - Nav link to Leaderboards visible (read-only view of current standings)
-- "Finish & Review" button advances to Screen 4
+- "Finish & Review" button is enabled only when every cell has a score ≥ 1; empty cells show a validation hint
 
 ### Screen 4 — Review & Submit
 - Same grid in read-only mode
@@ -78,7 +80,7 @@ No custom backend server. The frontend communicates directly with Supabase via i
 ### Screen 5 — Leaderboards
 - **Team leaderboard:** teams ranked by sum of all players' strokes (lowest first), only submitted teams shown
 - **Player leaderboard:** individual players ranked by total strokes across all holes (lowest first), only from submitted teams
-- Teams with different hole counts are compared by raw total strokes
+- Teams with different hole counts are compared by raw total strokes (intentional — organisers are responsible for ensuring consistent hole counts across teams if fair comparison is desired)
 - Accessible via nav link from Screen 3 onward; full destination after Submit
 
 ---
@@ -86,8 +88,16 @@ No custom backend server. The frontend communicates directly with Supabase via i
 ## Session Persistence
 
 - On setup completion, team ID is stored in `localStorage`
-- On app load, if a `localStorage` team ID exists, skip setup screens and resume at Scorecard
+- On app load, if a `localStorage` team ID exists:
+  - If `submitted_at` is null → resume at Scorecard (Screen 3)
+  - If `submitted_at` is set → go directly to Leaderboards (Screen 5)
 - Allows teams to reload the page without losing their session
+
+---
+
+## Security
+
+Score locking after Submit is enforced client-side only (no auth, no RLS). This is acceptable for a short-lived team-building event where participants are trusted. If stronger protection is needed in future, a Supabase RLS policy could block writes to `scores` where the parent team's `submitted_at` is set.
 
 ---
 

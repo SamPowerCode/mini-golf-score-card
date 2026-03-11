@@ -54,7 +54,7 @@ function ScoreCell({ value, onChange }) {
     return (
       <button
         style={cellBtn('#334155')}
-        onClick={() => onChange(1)}
+        onClick={() => onChange(0)}
         aria-label="set score"
       >
         —
@@ -63,7 +63,7 @@ function ScoreCell({ value, onChange }) {
   }
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
-      <button style={cellBtn('#1e293b')} onClick={() => onChange(Math.max(1, value - 1))} aria-label="-">−</button>
+      <button style={cellBtn('#1e293b')} onClick={() => onChange(Math.max(0, value - 1))} aria-label="-">−</button>
       <span style={{ minWidth: 18, textAlign: 'center', fontWeight: 600 }}>{value}</span>
       <button style={cellBtn('#1e293b')} onClick={() => onChange(value + 1)} aria-label="+">+</button>
     </div>

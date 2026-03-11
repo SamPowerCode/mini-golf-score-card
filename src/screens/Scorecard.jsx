@@ -80,14 +80,6 @@ export default function Scorecard() {
     }
   }, [])
 
-  function allScoresFilled() {
-    if (!team || players.length === 0) return false
-    return players.every(p =>
-      Array.from({ length: team.num_holes }, (_, i) => i + 1)
-        .every(h => (scores[p.id]?.[h] ?? 0) >= 1)
-    )
-  }
-
   if (loading) return <div className="screen"><p className="hint">Loading…</p></div>
   if (loadError) return <div className="screen"><p className="error-msg">{loadError}</p></div>
 
@@ -102,13 +94,9 @@ export default function Scorecard() {
         onScoreChange={handleScoreChange}
         readOnly={false}
       />
-      {!allScoresFilled() && (
-        <p className="hint" style={{ fontSize: '0.8rem' }}>Fill all scores to continue</p>
-      )}
       {saveError && <p className="error-msg">{saveError}</p>}
       <button
         className="btn btn-primary"
-        disabled={!allScoresFilled()}
         onClick={() => navigate('/review')}
       >
         Finish &amp; Review →

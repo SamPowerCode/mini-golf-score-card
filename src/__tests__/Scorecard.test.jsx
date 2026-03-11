@@ -51,10 +51,10 @@ describe('Scorecard', () => {
     expect(screen.getByText('Bob')).toBeInTheDocument()
   })
 
-  it('"Finish & Review" button is disabled when scores are incomplete', async () => {
+  it('"Finish & Review" button is always enabled', async () => {
     renderScorecard()
     await waitFor(() => screen.getByText('Alice'))
-    expect(screen.getByRole('button', { name: /finish/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /finish/i })).not.toBeDisabled()
   })
 
   it('upserts score when a cell is changed', async () => {

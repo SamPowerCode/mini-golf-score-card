@@ -7,6 +7,7 @@ import PlayerNames from './screens/PlayerNames'
 import Scorecard from './screens/Scorecard'
 import Review from './screens/Review'
 import Leaderboards from './screens/Leaderboards'
+import Admin from './screens/Admin'
 
 function SessionRouter() {
   const { teamId } = useSession()
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/scorecard" element={<Scorecard />} />
         <Route path="/review" element={<Review />} />
         <Route path="/leaderboards" element={<Leaderboards />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </HashRouter>
